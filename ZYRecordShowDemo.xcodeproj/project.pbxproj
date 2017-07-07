@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3E71B54F1F0E35030062302A /* UIView+Frame.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E71B54D1F0E35030062302A /* UIView+Frame.m */; };
+		3E71B5511F0E3B2A0062302A /* myVideo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 3E71B5501F0E3B2A0062302A /* myVideo.mp4 */; };
 		3EBDDACE1F0E147200C74A4D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EBDDACD1F0E147200C74A4D /* AppDelegate.m */; };
 		3EBDDAD41F0E147200C74A4D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3EBDDAD21F0E147200C74A4D /* Main.storyboard */; };
 		3EBDDAD61F0E147200C74A4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3EBDDAD51F0E147200C74A4D /* Assets.xcassets */; };
@@ -35,11 +37,15 @@
 		3EBDDB131F0E1BE600C74A4D /* ds_dubbing_line_572@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3EBDDB0F1F0E1BE500C74A4D /* ds_dubbing_line_572@2x.png */; };
 		3EBDDB141F0E1BE600C74A4D /* ds_dubbing_sightcing@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3EBDDB101F0E1BE500C74A4D /* ds_dubbing_sightcing@2x.png */; };
 		3EBDDB1B1F0E244C00C74A4D /* ZYRecordController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EBDDB1A1F0E244C00C74A4D /* ZYRecordController.m */; };
+		3EBDDB201F0E2E1F00C74A4D /* JC_MoviewAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EBDDB1F1F0E2E1F00C74A4D /* JC_MoviewAMusic.m */; };
 		90FB7BE09CC5C84294FB81B8 /* libPods-ZYRecordShowDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E59C9E9F4C7AF3987DD7CFBE /* libPods-ZYRecordShowDemo.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3D37A8A7AC35C19B2429DCA8 /* Pods-ZYRecordShowDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZYRecordShowDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-ZYRecordShowDemo/Pods-ZYRecordShowDemo.release.xcconfig"; sourceTree = "<group>"; };
+		3E71B54D1F0E35030062302A /* UIView+Frame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIView+Frame.m"; path = "../../../../../../../工作/项目/xing_zuo_iOS/NewZodiac/NewZodiac/Expand/Category/UIView/UIView+Frame.m"; sourceTree = "<group>"; };
+		3E71B54E1F0E35030062302A /* UIView+Frame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIView+Frame.h"; path = "../../../../../../../工作/项目/xing_zuo_iOS/NewZodiac/NewZodiac/Expand/Category/UIView/UIView+Frame.h"; sourceTree = "<group>"; };
+		3E71B5501F0E3B2A0062302A /* myVideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = myVideo.mp4; path = ../../../ZYAudioRecordDemo/ZYAudioRecordDemo/myVideo.mp4; sourceTree = "<group>"; };
 		3EBDDAC91F0E147200C74A4D /* ZYRecordShowDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZYRecordShowDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EBDDACC1F0E147200C74A4D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		3EBDDACD1F0E147200C74A4D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -50,7 +56,6 @@
 		3EBDDADB1F0E147200C74A4D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3EBDDAE41F0E14A900C74A4D /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		3EBDDAE51F0E14A900C74A4D /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		3EBDDAE81F0E150000C74A4D /* myVideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = myVideo.mp4; sourceTree = "<group>"; };
 		3EBDDAE91F0E151300C74A4D /* home_icon_play@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "home_icon_play@3x.png"; path = "../../../../../../record_car/home_icon_play@3x.png"; sourceTree = "<group>"; };
 		3EBDDAEA1F0E151300C74A4D /* home_icon_play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = home_icon_play.png; path = ../../../../../../record_car/home_icon_play.png; sourceTree = "<group>"; };
 		3EBDDAEB1F0E151300C74A4D /* home_icon_play@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "home_icon_play@2x.png"; path = "../../../../../../record_car/home_icon_play@2x.png"; sourceTree = "<group>"; };
@@ -75,8 +80,8 @@
 		3EBDDB101F0E1BE500C74A4D /* ds_dubbing_sightcing@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ds_dubbing_sightcing@2x.png"; path = "../../../../../../record_car/ds_dubbing_sightcing@2x.png"; sourceTree = "<group>"; };
 		3EBDDB191F0E244C00C74A4D /* ZYRecordController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZYRecordController.h; sourceTree = "<group>"; };
 		3EBDDB1A1F0E244C00C74A4D /* ZYRecordController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZYRecordController.m; sourceTree = "<group>"; };
-		3EBDDB1C1F0E2C2300C74A4D /* JC_MoviewAMusic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JC_MoviewAMusic.h; sourceTree = "<group>"; };
-		3EBDDB1D1F0E2C2300C74A4D /* JC_MoviewAMusic.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JC_MoviewAMusic.m; sourceTree = "<group>"; };
+		3EBDDB1E1F0E2E1F00C74A4D /* JC_MoviewAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JC_MoviewAMusic.h; sourceTree = "<group>"; };
+		3EBDDB1F1F0E2E1F00C74A4D /* JC_MoviewAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JC_MoviewAMusic.m; sourceTree = "<group>"; };
 		D72F5B9D2B829FA9AD35966D /* Pods-ZYRecordShowDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZYRecordShowDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ZYRecordShowDemo/Pods-ZYRecordShowDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		E59C9E9F4C7AF3987DD7CFBE /* libPods-ZYRecordShowDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ZYRecordShowDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -117,8 +122,15 @@
 				3EBDDACC1F0E147200C74A4D /* AppDelegate.h */,
 				3EBDDACD1F0E147200C74A4D /* AppDelegate.m */,
 				3EBDDAE31F0E14A900C74A4D /* Controller */,
+				3EBDDAE41F0E14A900C74A4D /* ViewController.h */,
+				3EBDDAE51F0E14A900C74A4D /* ViewController.m */,
+				3EBDDB191F0E244C00C74A4D /* ZYRecordController.h */,
+				3EBDDB1A1F0E244C00C74A4D /* ZYRecordController.m */,
 				3EBDDAE71F0E14A900C74A4D /* Model */,
+				3EBDDB1E1F0E2E1F00C74A4D /* JC_MoviewAMusic.h */,
+				3EBDDB1F1F0E2E1F00C74A4D /* JC_MoviewAMusic.m */,
 				3EBDDAE61F0E14A900C74A4D /* Source */,
+				3EBDDB211F0E335900C74A4D /* Other */,
 				3EBDDAE21F0E14A900C74A4D /* View */,
 				3EBDDAD21F0E147200C74A4D /* Main.storyboard */,
 				3EBDDAD51F0E147200C74A4D /* Assets.xcassets */,
@@ -139,10 +151,6 @@
 		3EBDDAE31F0E14A900C74A4D /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				3EBDDAE41F0E14A900C74A4D /* ViewController.h */,
-				3EBDDAE51F0E14A900C74A4D /* ViewController.m */,
-				3EBDDB191F0E244C00C74A4D /* ZYRecordController.h */,
-				3EBDDB1A1F0E244C00C74A4D /* ZYRecordController.m */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -150,6 +158,7 @@
 		3EBDDAE61F0E14A900C74A4D /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				3E71B5501F0E3B2A0062302A /* myVideo.mp4 */,
 				3EBDDB011F0E1B4F00C74A4D /* ds_all_delete_white@2x.png */,
 				3EBDDB021F0E1B4F00C74A4D /* ds_all_delete_white@3x.png */,
 				3EBDDAFD1F0E1AE800C74A4D /* 58_costar_icon_watch_play@2x.png */,
@@ -172,7 +181,6 @@
 				3EBDDB0E1F0E1BE500C74A4D /* ds_dubbing_line_420@2x.png */,
 				3EBDDB0F1F0E1BE500C74A4D /* ds_dubbing_line_572@2x.png */,
 				3EBDDB101F0E1BE500C74A4D /* ds_dubbing_sightcing@2x.png */,
-				3EBDDAE81F0E150000C74A4D /* myVideo.mp4 */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -180,10 +188,25 @@
 		3EBDDAE71F0E14A900C74A4D /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				3EBDDB1C1F0E2C2300C74A4D /* JC_MoviewAMusic.h */,
-				3EBDDB1D1F0E2C2300C74A4D /* JC_MoviewAMusic.m */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		3EBDDB211F0E335900C74A4D /* Other */ = {
+			isa = PBXGroup;
+			children = (
+				3EBDDB221F0E335900C74A4D /* Category */,
+			);
+			path = Other;
+			sourceTree = "<group>";
+		};
+		3EBDDB221F0E335900C74A4D /* Category */ = {
+			isa = PBXGroup;
+			children = (
+				3E71B54E1F0E35030062302A /* UIView+Frame.h */,
+				3E71B54D1F0E35030062302A /* UIView+Frame.m */,
+			);
+			path = Category;
 			sourceTree = "<group>";
 		};
 		69ED401D4437B3EA273C5E3A /* Pods */ = {
@@ -264,6 +287,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3EBDDAFF1F0E1AE900C74A4D /* 58_costar_icon_watch_play@2x.png in Resources */,
+				3E71B5511F0E3B2A0062302A /* myVideo.mp4 in Resources */,
 				3EBDDAD91F0E147200C74A4D /* LaunchScreen.storyboard in Resources */,
 				3EBDDAF41F0E15C700C74A4D /* ds_quanzi_button_dubbing_press@2x.png in Resources */,
 				3EBDDAEC1F0E151300C74A4D /* home_icon_play@3x.png in Resources */,
@@ -347,7 +371,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				3EBDDADC1F0E147200C74A4D /* main.m in Sources */,
+				3EBDDB201F0E2E1F00C74A4D /* JC_MoviewAMusic.m in Sources */,
 				3EBDDB1B1F0E244C00C74A4D /* ZYRecordController.m in Sources */,
+				3E71B54F1F0E35030062302A /* UIView+Frame.m in Sources */,
 				3EBDDACE1F0E147200C74A4D /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
