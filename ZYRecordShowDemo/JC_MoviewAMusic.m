@@ -7,33 +7,26 @@
 //
 
 #import "JC_MoviewAMusic.h"
-#import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
 
 @implementation JC_MoviewAMusic
 
-+(void)movieFliePaths:(NSArray *_Nullable)moviePaths musicPath:(NSURL *_Nullable)musicpath success:(void (^ _Nullable)(NSURL * _Nullable successPath))success failure:(void (^ _Nullable)(NSString * _Nullable errorMsg))failure
++(void)movieFliePaths:(NSArray *)moviePaths musicPath:(NSURL *)musicpath success:(void (^ )(NSURL *  successPath))success failure:(void (^ )(NSString *  errorMsg))failure
 {
-    if (moviePaths.count<1)
+    if (moviePaths.count < 1)
     return;
     
-    // 路径
-    NSString *documents = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
-    // 最终合成输出路径 时间来做输入路径不会出现重复
-    NSDateFormatter* formater = [[NSDateFormatter alloc] init];
-    [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
-    NSString *outPutFilePath = [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",[formater stringFromDate:[NSDate date]]]];
-    NSURL *outputFileUrl = [NSURL fileURLWithPath:outPutFilePath];
+    NSURL *outputFileUrl = [self outputFileURL];
     // 时间起点
     CMTime startTime = kCMTimeZero;
     
     // 创建可变的音视频组合
     AVMutableComposition *comosition = [AVMutableComposition composition];
-    //视频通道
+    // 视频通道
     AVMutableCompositionTrack *videoTrack = [comosition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
     
     //合成方向处理
-//    videoTrack.preferredTransform =  CGAffineTransformMakeRotation(M_PI/2);
+//    videoTrack.preferredTransform = CGAffineTransformMakeRotation(M_PI/2);
     
     for (int i = 0; i < moviePaths.count; i++)
     {
@@ -80,12 +73,197 @@
     // 合成完毕
     [assetExport exportAsynchronouslyWithCompletionHandler:^{
         
-        //AVAssetExportSessionStatusUnknown,
-        //AVAssetExportSessionStatusWaiting,
-        //AVAssetExportSessionStatusExporting,
-        //AVAssetExportSessionStatusCompleted,
-        //AVAssetExportSessionStatusFailed,
-        //AVAssetExportSessionStatusCancelled
+        [self handleResultWithAssetExport:assetExport outputURL:outputFileUrl success:success failure:failure];
+        
+    }];
+    if (assetExport.error) {
+        NSLog(@"%@",assetExport.error);
+    }
+    
+}
+
++ (void)combineAudioWithRecordAudios:(NSArray<ZYRecordAudio *> *)recordAudios success:(void (^)(NSURL * ))success failure:(void (^)(NSString * ))failure {
+    
+    if (recordAudios.count < 1)
+        return;
+    
+    NSURL *outputFileUrl = [self outputFileURL];
+    
+    // 创建可变的音视频组合
+    AVMutableComposition *comosition = [AVMutableComposition composition];
+    
+    //****************背景音乐*************************************
+    // 音频通道
+    AVMutableCompositionTrack *audioTrack = [comosition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
+    CMTime startTime = kCMTimeZero;
+    for (NSURL *audioURL in recordAudios) {
+        // 声音采集
+        AVURLAsset *audioAsset = [[AVURLAsset alloc] initWithURL:audioURL options:nil];
+        // 拼接每段音频
+        CMTimeRange audioTimeRange = CMTimeRangeMake(kCMTimeZero, audioAsset.duration);
+        // 音频采集通道
+        AVAssetTrack *audioAssetTrack = [audioAsset tracksWithMediaType:AVMediaTypeAudio].firstObject;
+        // 加入合成轨道之中
+        [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:startTime error:nil];
+        CMTimeAdd(startTime, audioAsset.duration);
+    }
+    // 创建一个输出
+    AVAssetExportSession *assetExport = [[AVAssetExportSession alloc] initWithAsset:comosition presetName:AVAssetExportPresetAppleM4A];
+    
+    // 输出类型
+    assetExport.outputFileType = AVFileTypeAppleM4A;
+    // 输出地址
+    assetExport.outputURL = outputFileUrl;
+    // 优化
+    assetExport.shouldOptimizeForNetworkUse = YES;
+    //模糊
+    assetExport.canPerformMultiplePassesOverSourceMediaData = NO;
+    // 合成完毕
+    [assetExport exportAsynchronouslyWithCompletionHandler:^{
+        
+        [self handleResultWithAssetExport:assetExport outputURL:outputFileUrl success:success failure:failure];
+        
+    }];
+    if (assetExport.error) {
+        NSLog(@"%@",assetExport.error);
+    }
+    
+}
+
++ (void)combineAudioWithRecordAudios:(NSArray<NSURL *> *)recordAudios secondAudioStartTime:(NSTimeInterval)startTime success:(void (^)(NSURL *))success failure:(void (^)(NSString *))failure {
+    
+    if (recordAudios.count != 2)
+        return;
+    
+    NSURL *outputFileUrl = [self outputFileURL];
+    
+    // 创建可变的音视频组合
+    AVMutableComposition *comosition = [AVMutableComposition composition];
+    
+    //****************背景音乐*************************************
+    // 音频通道
+    AVMutableCompositionTrack *audioTrack = [comosition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
+    CMTime mStartTime = CMTimeMake(startTime * 1000, 1000);
+    AVURLAsset *firstAsset;
+    AVURLAsset *secondAsset;
+    NSUInteger index = 0;
+    for (NSURL *audioURL in recordAudios) {
+        // 声音采集
+        AVURLAsset *audioAsset = [[AVURLAsset alloc] initWithURL:audioURL options:nil];
+        if (index == 0) {
+            firstAsset = audioAsset;
+        } else {
+            secondAsset = audioAsset;
+        }
+        // 拼接每段音频
+        CMTime toTime = kCMTimeZero;
+        if (index == 0) {
+            toTime = mStartTime;
+        } else if (index == 1) {
+            toTime = audioAsset.duration;
+        }
+        CMTimeRange audioTimeRange = CMTimeRangeMake(kCMTimeZero, toTime);
+        // 音频采集通道
+        AVAssetTrack *audioAssetTrack = [audioAsset tracksWithMediaType:AVMediaTypeAudio].firstObject;
+        // 加入合成轨道之中
+        [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:mStartTime error:nil];
+        index += 1;
+    }
+    if (firstAsset.duration.timescale && secondAsset.duration.timescale) {
+        NSInteger firstDuration = firstAsset.duration.value / firstAsset.duration.timescale;
+        NSInteger secondDuration = secondAsset.duration.value / secondAsset.duration.timescale;
+        if (firstDuration > secondDuration + startTime) {
+            CMTime firstAudioStartTime = CMTimeMake((secondDuration + startTime) * 1000, 1000);
+            CMTimeRange audioTimeRange = CMTimeRangeMake(firstAudioStartTime, CMTimeMake((firstDuration - secondDuration - startTime) * 1000, 1000));
+            // 音频采集通道
+            AVAssetTrack *audioAssetTrack = [firstAsset tracksWithMediaType:AVMediaTypeAudio].firstObject;
+            // 加入合成轨道之中
+            [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:firstAudioStartTime error:nil];
+        }
+    }
+    // 创建一个输出
+    AVAssetExportSession *assetExport = [[AVAssetExportSession alloc] initWithAsset:comosition presetName:AVAssetExportPresetAppleM4A];
+    
+    // 输出类型
+    assetExport.outputFileType = AVFileTypeAppleM4A;
+    // 输出地址
+    assetExport.outputURL = outputFileUrl;
+    // 优化
+    assetExport.shouldOptimizeForNetworkUse = YES;
+    //模糊
+    assetExport.canPerformMultiplePassesOverSourceMediaData = NO;
+    // 合成完毕
+    [assetExport exportAsynchronouslyWithCompletionHandler:^{
+        
+        [self handleResultWithAssetExport:assetExport outputURL:outputFileUrl success:success failure:failure];
+        
+    }];
+    if (assetExport.error) {
+        NSLog(@"%@",assetExport.error);
+    }
+    
+}
+
++ (void)cutAudioTrackWithAudioURL:(NSURL *)audioURL cutTime:(NSTimeInterval)cutTime success:(void (^ )(NSURL * ))success failure:(void (^ )(NSString * ))failure {
+    
+    NSURL *outputFileUrl = [self outputFileURL];
+    
+    // 创建可变的音视频组合
+    AVMutableComposition *comosition = [AVMutableComposition composition];
+    
+    //****************背景音乐*************************************
+    // 音频通道
+    AVMutableCompositionTrack *audioTrack = [comosition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
+    // 声音采集
+    AVURLAsset *audioAsset = [[AVURLAsset alloc] initWithURL:audioURL options:nil];
+    // 拼接每段音频
+    if (cutTime >= audioAsset.duration.value / audioAsset.duration.timescale) {
+        NSLog(@"音频处理失败：剪切时长大于音频时长！");
+        return;
+    }
+    CMTimeRange audioTimeRange = CMTimeRangeMake(kCMTimeZero, CMTimeSubtract(audioAsset.duration, CMTimeMake(cutTime, 1)));
+    // 音频采集通道
+    AVAssetTrack *audioAssetTrack = [audioAsset tracksWithMediaType:AVMediaTypeAudio].firstObject;
+    // 加入合成轨道之中
+    [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:kCMTimeZero error:nil];
+    // 创建一个输出
+    AVAssetExportSession *assetExport = [[AVAssetExportSession alloc] initWithAsset:comosition presetName:AVAssetExportPresetAppleM4A];
+    
+    // 输出类型
+    assetExport.outputFileType = AVFileTypeAppleM4A;
+    // 输出地址
+    assetExport.outputURL = outputFileUrl;
+    // 优化
+    assetExport.shouldOptimizeForNetworkUse = YES;
+    //模糊
+    assetExport.canPerformMultiplePassesOverSourceMediaData = NO;
+    // 合成完毕
+    [assetExport exportAsynchronouslyWithCompletionHandler:^{
+        
+        [self handleResultWithAssetExport:assetExport outputURL:outputFileUrl success:success failure:failure];
+        
+    }];
+    if (assetExport.error) {
+        NSLog(@"%@",assetExport.error);
+    }
+    
+}
+
++ (NSURL *)outputFileURL {
+    
+    // 路径
+    NSString *documents = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    // 最终合成输出路径 时间来做输入路径不会出现重复
+    NSDateFormatter* formater = [[NSDateFormatter alloc] init];
+    [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
+    NSString *outPutFilePath = [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.m4a",[formater stringFromDate:[NSDate date]]]];
+    NSURL *outputFileUrl = [NSURL fileURLWithPath:outPutFilePath];
+    return outputFileUrl;
+    
+}
+
++ (void)handleResultWithAssetExport:(AVAssetExportSession *)assetExport outputURL:(NSURL *)outputURL success:(void (^ )(NSURL * ))success failure:(void (^ )(NSString * ))failure {
+    dispatch_async(dispatch_get_main_queue(), ^{
         switch (assetExport.status) {
             case AVAssetExportSessionStatusUnknown:
             {
@@ -107,11 +285,7 @@
                 break;
             case AVAssetExportSessionStatusCompleted:
             {
-                // 回到主线程
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    //
-                    success(outputFileUrl);
-                });
+                success(outputURL);
             }
                 break;
             case AVAssetExportSessionStatusFailed:
@@ -129,12 +303,7 @@
             default:
                 break;
         }
-        
-    }];
-    if (assetExport.error) {
-        NSLog(@"%@",assetExport.error);
-    }
-    
+    });
     
 }
 

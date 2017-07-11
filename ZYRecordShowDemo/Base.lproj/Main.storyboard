@@ -60,7 +60,7 @@
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Wtm-6P-Z2P">
-                                <rect key="frame" x="0.0" y="260" width="375" height="166"/>
+                                <rect key="frame" x="0.0" y="260" width="375" height="206"/>
                                 <color key="backgroundColor" red="0.12505590915679932" green="0.13223698735237122" blue="0.18613630533218384" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yem-1b-bg9">
@@ -78,14 +78,14 @@
                                         <state key="normal" image="58_costar_icon_watch_play.png"/>
                                     </button>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xUJ-9z-JaT" userLabel="Process BG View">
-                                        <rect key="frame" x="0.0" y="0.0" width="375" height="5"/>
+                                        <rect key="frame" x="-1" y="0.0" width="376" height="5"/>
                                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.096024186643835621" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="5" id="iYx-qz-ok7"/>
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6sB-62-Dhu" userLabel="Process View">
-                                        <rect key="frame" x="0.0" y="0.0" width="1" height="5"/>
+                                        <rect key="frame" x="-1" y="0.0" width="1" height="5"/>
                                         <color key="backgroundColor" red="0.96377300126903553" green="0.96377300126903553" blue="0.96377300126903553" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="5" id="bBX-6Y-blz"/>
@@ -98,9 +98,9 @@
                                     <constraint firstAttribute="trailing" secondItem="xUJ-9z-JaT" secondAttribute="trailing" id="IyP-ED-NMt"/>
                                     <constraint firstItem="wVu-UE-wxz" firstAttribute="centerY" secondItem="vzl-na-kbl" secondAttribute="centerY" id="TCo-Kh-u6i"/>
                                     <constraint firstItem="6sB-62-Dhu" firstAttribute="top" secondItem="xUJ-9z-JaT" secondAttribute="top" id="kVi-DZ-eYJ"/>
-                                    <constraint firstItem="xUJ-9z-JaT" firstAttribute="leading" secondItem="vzl-na-kbl" secondAttribute="leading" id="pdS-Zi-8lb"/>
+                                    <constraint firstItem="xUJ-9z-JaT" firstAttribute="leading" secondItem="vzl-na-kbl" secondAttribute="leading" constant="-1" id="pdS-Zi-8lb"/>
                                     <constraint firstItem="xUJ-9z-JaT" firstAttribute="top" secondItem="vzl-na-kbl" secondAttribute="top" id="sF4-7C-u6J"/>
-                                    <constraint firstItem="6sB-62-Dhu" firstAttribute="leading" secondItem="vzl-na-kbl" secondAttribute="leading" id="sdZ-sB-fZO"/>
+                                    <constraint firstItem="6sB-62-Dhu" firstAttribute="leading" secondItem="vzl-na-kbl" secondAttribute="leading" constant="-1" id="sdZ-sB-fZO"/>
                                     <constraint firstAttribute="width" secondItem="vzl-na-kbl" secondAttribute="height" multiplier="16:9" id="yd8-dv-Uui"/>
                                 </constraints>
                             </view>
@@ -162,8 +162,9 @@
                                     <constraint firstAttribute="height" constant="1" id="qyf-6J-Ucm"/>
                                 </constraints>
                             </view>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kq4-kV-9DD">
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" bounces="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kq4-kV-9DD">
                                 <rect key="frame" x="0.0" y="427" width="375" height="40"/>
+                                <color key="backgroundColor" red="0.14806655049324036" green="0.17134779691696167" blue="0.23359820246696472" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="40" id="eB5-Ol-T3j"/>
                                 </constraints>
@@ -171,7 +172,7 @@
                                     <outlet property="delegate" destination="oCw-dL-PyP" id="QHl-Bh-Oyy"/>
                                 </connections>
                             </scrollView>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="V1Q-PT-4BD">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="V1Q-PT-4BD" userLabel="Line View">
                                 <rect key="frame" x="0.0" y="467" width="375" height="1"/>
                                 <color key="backgroundColor" white="1" alpha="0.10244541952054795" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
@@ -201,6 +202,7 @@
                             <constraint firstItem="vzl-na-kbl" firstAttribute="top" secondItem="yem-1b-bg9" secondAttribute="bottom" constant="15" id="9Fa-sN-b2j"/>
                             <constraint firstItem="RN3-Q2-2gB" firstAttribute="centerX" secondItem="cwf-4z-mCY" secondAttribute="centerX" id="AJr-zf-WSw"/>
                             <constraint firstItem="tJ8-t3-9ob" firstAttribute="top" secondItem="kq4-kV-9DD" secondAttribute="bottom" constant="10" id="EMg-hT-C7U"/>
+                            <constraint firstItem="tJ8-t3-9ob" firstAttribute="top" secondItem="Wtm-6P-Z2P" secondAttribute="bottom" constant="11" id="LBk-lH-bnx"/>
                             <constraint firstAttribute="trailing" secondItem="vzl-na-kbl" secondAttribute="trailing" id="MW4-K3-mDr"/>
                             <constraint firstItem="RN3-Q2-2gB" firstAttribute="centerY" secondItem="yem-1b-bg9" secondAttribute="centerY" id="Me8-Up-Fsz"/>
                             <constraint firstAttribute="trailing" secondItem="maO-SX-xEL" secondAttribute="trailing" id="NtS-Jf-eVd"/>
@@ -208,7 +210,6 @@
                             <constraint firstItem="Wtm-6P-Z2P" firstAttribute="leading" secondItem="cwf-4z-mCY" secondAttribute="leading" id="QHz-KL-QbT"/>
                             <constraint firstAttribute="trailing" secondItem="kq4-kV-9DD" secondAttribute="trailing" id="V7m-nq-Eq2"/>
                             <constraint firstAttribute="trailing" secondItem="Esx-xf-YwL" secondAttribute="trailing" id="VIs-3s-cyf"/>
-                            <constraint firstItem="Esx-xf-YwL" firstAttribute="top" secondItem="Wtm-6P-Z2P" secondAttribute="bottom" id="Vlt-Ur-owF"/>
                             <constraint firstItem="DrK-jO-GrI" firstAttribute="leading" secondItem="cwf-4z-mCY" secondAttribute="leading" constant="80" id="anA-NV-jJo"/>
                             <constraint firstItem="yem-1b-bg9" firstAttribute="leading" secondItem="cwf-4z-mCY" secondAttribute="leading" constant="16" id="b7I-4i-j9E"/>
                             <constraint firstItem="tNy-DZ-tch" firstAttribute="top" secondItem="tJ8-t3-9ob" secondAttribute="bottom" id="daE-oq-5R1"/>
@@ -227,6 +228,8 @@
                     </view>
                     <nil key="simulatedStatusBarMetrics"/>
                     <connections>
+                        <outlet property="bottomLineView" destination="V1Q-PT-4BD" id="Wte-DN-CP3"/>
+                        <outlet property="centerLineView" destination="maO-SX-xEL" id="kUM-Zo-lKe"/>
                         <outlet property="closeBtn" destination="yem-1b-bg9" id="cNT-vO-aFV"/>
                         <outlet property="playerView" destination="vzl-na-kbl" id="j5a-gz-8gf"/>
                         <outlet property="previewBtn" destination="z23-Uj-Z9P" id="H3D-fz-ruY"/>
@@ -236,6 +239,7 @@
                         <outlet property="scrollView" destination="kq4-kV-9DD" id="kAd-M8-O7J"/>
                         <outlet property="startLineView" destination="DrK-jO-GrI" id="Xbh-Yf-eAZ"/>
                         <outlet property="timeLabel" destination="RN3-Q2-2gB" id="2CZ-ry-eCh"/>
+                        <outlet property="topLineView" destination="Esx-xf-YwL" id="QOs-ot-yCk"/>
                         <outlet property="videoPlayBtn" destination="wVu-UE-wxz" id="oXm-8b-yF0"/>
                     </connections>
                 </viewController>
