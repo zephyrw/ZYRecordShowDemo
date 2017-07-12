@@ -38,6 +38,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 @property (strong, nonatomic) NSURL *currentRecordURL;
 @property (strong, nonatomic) NSURL *preRecordURL;
 @property (strong, nonatomic) NSURL *baseRecordURL;
+@property (strong, nonatomic) NSURL *previewRecordURL;
 @property (strong, nonatomic) AVPlayer *player;
 @property (strong, nonatomic) AVPlayerItem *playerItem;
 @property (strong, nonatomic) AVPlayerLayer *playerLayer;
@@ -58,7 +59,9 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 @property (assign, nonatomic) BOOL needRedAudioPlot;
 @property (assign, nonatomic) BOOL needCombineRed;
 @property (assign, nonatomic) CGFloat redAudioPlotOffset;
-@property (assign, nonatomic) CGFloat prePlotOffset;
+@property (assign, nonatomic) CGPoint offsetBeforePreview;
+@property (strong, nonatomic) UIView *previewProcessView;
+@property (strong, nonatomic) UIView *scaleView;
 
 @end
 
@@ -89,6 +92,16 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [JC_MoviewAMusic clearRecordDirectory];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [JC_MoviewAMusic clearRecordDirectory];
+}
+
 - (void)setupUI {
     
     UIView *topCircle = [[UIView alloc] initWithFrame:CGRectMake(-1.5, -4, 4, 4)];
@@ -104,6 +117,13 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     bottomCircle.layer.borderColor = self.startLineView.backgroundColor.CGColor;
     bottomCircle.clipsToBounds = YES;
     [self.startLineView addSubview:bottomCircle];
+    
+    self.previewProcessView = [[UIView alloc] initWithFrame:CGRectMake(0, -2, 1, self.startLineView.height + 4)];
+    self.previewProcessView.layer.anchorPoint = CGPointMake(1, 0.5);
+    self.previewProcessView.layer.position = CGPointMake(0, self.startLineView.height / 2);
+    self.previewProcessView.hidden = YES;
+    self.previewProcessView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.1];
+    [self.startLineView addSubview:self.previewProcessView];
     
     [self handleAudioViewIsHidden:YES];
     
@@ -127,9 +147,10 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     
     self.secondAudioPlot = [[EZAudioPlot alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 40)];
     self.secondAudioPlot.layer.anchorPoint = CGPointMake(0, 0.5);
-    self.secondAudioPlot.layer.position = CGPointMake(self.startLineView.left, 20);
+    self.secondAudioPlot.layer.position = CGPointMake(-SCREEN_WIDTH, 20);
     self.secondAudioPlot.backgroundColor = [UIColor clearColor];
     self.secondAudioPlot.color           = [UIColor redColor];
+    self.secondAudioPlot.backgroundColor = [UIColor colorWithRed:38 / 255.0 green:44 / 255.0 blue:60 / 255.0 alpha:1];
     self.secondAudioPlot.plotType        = EZPlotTypeBuffer;
     self.secondAudioPlot.shouldFill      = YES;
     self.secondAudioPlot.shouldMirror    = YES;
@@ -166,7 +187,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     if (sender.isSelected) {
         [self handleAudioViewIsHidden:YES];
         [self setAudioSessionWithType:AVAudioSessionCategoryPlayAndRecord];
-        [self setupPlayerWithVideoURL:self.videoURL];
+        [self setupPlayerWithVideoURL:self.silenceVideoURL];
         [self setupAudioRecorder];
         if (self.recordCurrentTime > self.videoDuration) {
             [SVProgressHUD showErrorWithStatus:@"已录制完毕，不能再继续录制"];
@@ -197,6 +218,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     self.previewBtn.hidden = NO;
     self.videoPlayBtn.hidden = NO;
     self.resetBtn.hidden = NO;
+    [self setupPreviewRecordAudio];
 }
 
 - (IBAction)resetBtnClick:(UIButton *)sender {
@@ -205,20 +227,26 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 - (IBAction)previewBtnClick:(UIButton *)sender {
     sender.selected = !sender.isSelected;
     if (sender.isSelected) {
+        self.scrollView.userInteractionEnabled = NO;
+        self.previewProcessView.hidden = NO;
+        self.offsetBeforePreview = self.scrollView.contentOffset;
         self.previewCurrentTime = 0;
         [self setAudioSessionWithType:AVAudioSessionCategoryPlayback];
         [self setupPlayerWithVideoURL:self.silenceVideoURL];
         [self.player play];
-        [self setupAudioPlayerWithURL:self.preRecordURL];
+        [self setupAudioPlayerWithURL:self.previewRecordURL];
         self.videoPlayBtn.hidden = YES;
         self.resetBtn.hidden = YES;
         [self listenToTimeChange];
     } else {
+        self.scrollView.userInteractionEnabled = YES;
+        self.previewProcessView.hidden = YES;
         [self.timer invalidate];
         self.videoPlayBtn.hidden = NO;
         self.resetBtn.hidden = YES;
         [self.player pause];
         [self.audioPlayer pause];
+        self.scrollView.contentOffset = self.offsetBeforePreview;
     }
 }
 
@@ -250,12 +278,11 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     }
     NSError *recorderError = nil;
     self.audioCount += 1;
-    self.currentRecordURL = [self currentFileURL];
+    self.currentRecordURL = [JC_MoviewAMusic recordFileURL];
     self.needRedAudioPlot = self.scrollView.contentOffset.x != self.originOffset.x || self.needRedAudioPlot;
     self.needCombineRed = self.scrollView.contentOffset.x == self.originOffset.x && self.needRedAudioPlot;
     if (self.needRedAudioPlot && !self.needCombineRed) {
-        self.prePlotOffset = self.redAudioPlotOffset;
-        self.redAudioPlotOffset = fabs(self.scrollView.contentOffset.x - self.originOffset.x);
+        self.redAudioPlotOffset = self.originOffset.x - self.scrollView.contentOffset.x;
         self.recordCurrentTime -= self.redAudioPlotOffset / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
     }
     self.audioRecorder = [[AVAudioRecorder alloc] initWithURL:self.currentRecordURL settings:[self audioRecordingSettings] error:&recorderError];
@@ -388,6 +415,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     NSTimeInterval currentTime = self.recordBtn.isSelected ? self.recordCurrentTime : self.previewCurrentTime;
     if (currentTime < self.firstAudioFile.duration && !self.recordBtn.isSelected) {
         self.scrollView.contentOffset = CGPointMake(currentTime / audioPlotMaxSecondsPerScreen * SCREEN_WIDTH, 0);
+        self.previewProcessView.transform = CGAffineTransformMakeScale(self.scrollView.contentOffset.x, 1);
     }
     int currentMin = (int)currentTime / 60;
     int currentSec = (int)currentTime % 60;
@@ -415,10 +443,10 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 
 - (void)openAudioFile {
     
-    NSLog(@"current audio count -------> %ld", self.audioCount);
-    NSLog(@"pre url ---------> %@", self.preRecordURL);
-    NSLog(@"current url ---------> %@", self.currentRecordURL);
-    NSLog(@"base url ---------> %@", self.baseRecordURL);
+//    NSLog(@"current audio count -------> %ld", self.audioCount);
+//    NSLog(@"pre url ---------> %@", self.preRecordURL);
+//    NSLog(@"current url ---------> %@", self.currentRecordURL);
+//    NSLog(@"base url ---------> %@", self.baseRecordURL);
     if (self.audioCount == 2) {
         if (self.needRedAudioPlot) {
             self.secondAudioFile = [EZAudioFile audioFileWithURL:self.currentRecordURL];
@@ -443,7 +471,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 - (void)combineAudioTrack {
     
     [self handleAudioViewIsHidden:YES];
-    [JC_MoviewAMusic combineAudioWithRecordAudios:@[self.preRecordURL, self.currentRecordURL] success:^(NSURL * _Nullable successURL) {
+    [JC_MoviewAMusic combineRecordAudios:@[self.preRecordURL, self.currentRecordURL] needRemoveOriginAudios:YES success:^(NSURL * _Nullable successURL) {
         self.preRecordURL = successURL;
         self.audioCount -= 1;
         if (self.needCombineRed) {
@@ -461,9 +489,8 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 - (void)combineAndCoverAudioTrack {
     
     [self handleAudioViewIsHidden:YES];
-    EZAudioFile *baseFile = [EZAudioFile audioFileWithURL:self.baseRecordURL];
-    NSTimeInterval startTime = baseFile.duration - self.prePlotOffset / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
-    [JC_MoviewAMusic combineAudioWithRecordAudios:@[self.baseRecordURL, self.preRecordURL] secondAudioStartTime:startTime success:^(NSURL *successURL) {
+    NSTimeInterval startTime = (self.secondAudioPlot.left - self.firstAudioPlot.left) / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
+    [JC_MoviewAMusic combineAndCoverRecordAudios:@[self.baseRecordURL, self.preRecordURL] secondAudioStartTime:startTime needRemoveOriginAudios:YES success:^(NSURL *successURL) {
         self.baseRecordURL = successURL;
         self.preRecordURL = successURL;
         self.secondAudioFile = [EZAudioFile audioFileWithURL:self.currentRecordURL];
@@ -480,10 +507,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 
 - (void)updateUI {
     
-    self.firstAudioFile = [EZAudioFile audioFileWithURL:self.preRecordURL];
-    if (self.needCombineRed) {
-        self.firstAudioFile = [EZAudioFile audioFileWithURL:self.baseRecordURL];
-    }
+    self.firstAudioFile = [EZAudioFile audioFileWithURL:self.needCombineRed ? self.baseRecordURL : self.preRecordURL];
     double firstScale = self.firstAudioFile.duration / audioPlotMaxSecondsPerScreen;
     double secondScale = self.secondAudioFile.duration / audioPlotMaxSecondsPerScreen;
     if (firstScale + secondScale > 80 / SCREEN_WIDTH) {
@@ -495,14 +519,19 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     }
     self.firstAudioPlot.transform = CGAffineTransformMakeScale(firstScale, 1);
     if (self.needRedAudioPlot) {
-        self.secondAudioPlot.layer.position = CGPointMake(self.firstAudioPlot.right - self.redAudioPlotOffset, 20);
+        if (!self.needCombineRed && self.secondAudioPlot.left != -SCREEN_WIDTH) {
+            self.secondAudioPlot.layer.position = CGPointMake(self.secondAudioPlot.right - self.redAudioPlotOffset, 20);
+        } else {
+            self.secondAudioPlot.layer.position = CGPointMake(self.firstAudioPlot.right - self.redAudioPlotOffset, 20);
+        }
         self.secondAudioPlot.transform = CGAffineTransformMakeScale(secondScale, 1);
     }
-    CGFloat scrollOffset = self.needRedAudioPlot ? self.secondAudioPlot.width + self.firstAudioPlot.width - self.redAudioPlotOffset : self.firstAudioPlot.width;
+    CGFloat scrollOffset = self.needRedAudioPlot ? self.secondAudioPlot.right - self.firstAudioPlot.left : self.firstAudioPlot.width;
     self.scrollView.contentOffset = CGPointMake(scrollOffset, 0);
-    CGFloat scrollContentSizeDelta = self.needRedAudioPlot ? ((self.secondAudioPlot.width + self.redAudioPlotOffset) > self.firstAudioPlot.width ? (self.secondAudioPlot.width + self.redAudioPlotOffset) : self.firstAudioPlot.width) : self.firstAudioPlot.width;
+    CGFloat scrollContentSizeDelta = self.needRedAudioPlot ? (self.secondAudioPlot.right > self.firstAudioPlot.right ? (self.secondAudioPlot.right - self.firstAudioPlot.left) : self.firstAudioPlot.width) : self.firstAudioPlot.width;
     self.scrollView.contentSize = CGSizeMake(SCREEN_WIDTH + scrollContentSizeDelta, self.scrollView.height);
     self.originOffset = self.scrollView.contentOffset;
+    [self setupScaleView];
     __weak typeof (self) weakSelf = self;
     [self.firstAudioFile getWaveformDataWithCompletionBlock:^(float **waveformData, int length) {
         [weakSelf.firstAudioPlot updateBuffer:waveformData[0] withBufferSize:length];
@@ -511,6 +540,21 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         [self.secondAudioFile getWaveformDataWithCompletionBlock:^(float **waveformData, int length) {
             [weakSelf.secondAudioPlot updateBuffer:waveformData[0] withBufferSize:length];
         }];
+    }
+    
+}
+
+- (void)setupPreviewRecordAudio {
+    
+    if (self.audioCount == 2 && self.needRedAudioPlot) {
+        NSTimeInterval startTime = (self.secondAudioPlot.left - self.firstAudioPlot.left) / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
+        [JC_MoviewAMusic combineAndCoverRecordAudios:@[self.baseRecordURL, self.currentRecordURL] secondAudioStartTime:startTime needRemoveOriginAudios:NO success:^(NSURL *successURL) {
+            self.previewRecordURL = successURL;
+        } failure:^(NSString *errorMsg) {
+            NSLog(@"Failed to combine audio for preview: %@", errorMsg);
+        }];
+    } else {
+        self.previewRecordURL = self.preRecordURL;
     }
     
 }
@@ -527,14 +571,24 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     
 }
 
-- (NSURL *)currentFileURL {
-    // 路径
-    NSString *documents = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
-    // 最终合成输出路径 时间来做输入路径不会出现重复
-    NSDateFormatter* formater = [[NSDateFormatter alloc] init];
-    [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
-    NSString *outPutFilePath = [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.m4a",[formater stringFromDate:[NSDate date]]]];
-    return [NSURL fileURLWithPath:outPutFilePath];
+- (void)setupScaleView {
+    
+    if (self.scaleView) {
+        for (UIView *view in self.scaleView.subviews) {
+            [view removeFromSuperview];
+        }
+        [self.scaleView removeFromSuperview];
+    }
+    self.scaleView = [[UIView alloc] initWithFrame:CGRectMake(0, self.firstAudioPlot.height, self.scrollView.contentSize.width - SCREEN_WIDTH, 1)];
+    self.scaleView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5];
+    [self.firstAudioPlot addSubview:self.scaleView];
+    int totalTime = self.scaleView.width / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
+    CGFloat delta = SCREEN_WIDTH * 5 / audioPlotMaxSecondsPerScreen;
+    for (int i = 0; i < totalTime / 5; i++) {
+        UIView *longLineView = [[UIView alloc] initWithFrame:CGRectMake(i * delta, 0, 1, 3)];
+        [self.scaleView addSubview:longLineView];
+    }
+    
 }
 
 #pragma mark - EZMicrophoneDelegate

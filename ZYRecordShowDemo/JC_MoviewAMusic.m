@@ -11,12 +11,12 @@
 
 @implementation JC_MoviewAMusic
 
-+(void)movieFliePaths:(NSArray *)moviePaths musicPath:(NSURL *)musicpath success:(void (^ )(NSURL *  successPath))success failure:(void (^ )(NSString *  errorMsg))failure
++ (void)movieFliePaths:(NSArray *)moviePaths musicPath:(NSURL *)musicpath success:(void (^ )(NSURL *  successPath))success failure:(void (^ )(NSString *  errorMsg))failure
 {
     if (moviePaths.count < 1)
     return;
     
-    NSURL *outputFileUrl = [self outputFileURL];
+    NSURL *outputFileUrl = [self videoFileURL];
     // 时间起点
     CMTime startTime = kCMTimeZero;
     
@@ -82,12 +82,12 @@
     
 }
 
-+ (void)combineAudioWithRecordAudios:(NSArray<ZYRecordAudio *> *)recordAudios success:(void (^)(NSURL * ))success failure:(void (^)(NSString * ))failure {
++ (void)combineRecordAudios:(NSArray<NSURL *> *)recordAudios needRemoveOriginAudios:(BOOL)needRemove success:(void (^)(NSURL *))success failure:(void (^)(NSString *))failure {
     
     if (recordAudios.count < 1)
         return;
     
-    NSURL *outputFileUrl = [self outputFileURL];
+    NSURL *outputFileUrl = [self recordFileURL];
     
     // 创建可变的音视频组合
     AVMutableComposition *comosition = [AVMutableComposition composition];
@@ -105,7 +105,7 @@
         AVAssetTrack *audioAssetTrack = [audioAsset tracksWithMediaType:AVMediaTypeAudio].firstObject;
         // 加入合成轨道之中
         [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:startTime error:nil];
-        CMTimeAdd(startTime, audioAsset.duration);
+        startTime = CMTimeAdd(startTime, audioAsset.duration);
     }
     // 创建一个输出
     AVAssetExportSession *assetExport = [[AVAssetExportSession alloc] initWithAsset:comosition presetName:AVAssetExportPresetAppleM4A];
@@ -122,6 +122,15 @@
     [assetExport exportAsynchronouslyWithCompletionHandler:^{
         
         [self handleResultWithAssetExport:assetExport outputURL:outputFileUrl success:success failure:failure];
+        if (needRemove) {
+            for (NSURL *url in recordAudios) {
+                NSError *error = nil;
+                [[NSFileManager defaultManager] removeItemAtURL:url error:&error];
+                if (error) {
+                    NSLog(@"Filed to delete file at path:%@, reason: %@", url, error);
+                }
+            }
+        }
         
     }];
     if (assetExport.error) {
@@ -130,17 +139,17 @@
     
 }
 
-+ (void)combineAudioWithRecordAudios:(NSArray<NSURL *> *)recordAudios secondAudioStartTime:(NSTimeInterval)startTime success:(void (^)(NSURL *))success failure:(void (^)(NSString *))failure {
++ (void)combineAndCoverRecordAudios:(NSArray<NSURL *> *)recordAudios secondAudioStartTime:(NSTimeInterval)startTime needRemoveOriginAudios:(BOOL)needRemove success:(void (^)(NSURL *))success failure:(void (^)(NSString *))failure {
     
     if (recordAudios.count != 2)
         return;
     
-    NSURL *outputFileUrl = [self outputFileURL];
+    NSURL *outputFileUrl = [self recordFileURL];
     
     // 创建可变的音视频组合
     AVMutableComposition *comosition = [AVMutableComposition composition];
     
-    //****************背景音乐*************************************
+    //**************************背景音乐***************************
     // 音频通道
     AVMutableCompositionTrack *audioTrack = [comosition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
     CMTime mStartTime = CMTimeMake(startTime * 1000, 1000);
@@ -157,16 +166,18 @@
         }
         // 拼接每段音频
         CMTime toTime = kCMTimeZero;
+        CMTime startTime = kCMTimeZero;
         if (index == 0) {
             toTime = mStartTime;
         } else if (index == 1) {
             toTime = audioAsset.duration;
+            startTime = mStartTime;
         }
         CMTimeRange audioTimeRange = CMTimeRangeMake(kCMTimeZero, toTime);
         // 音频采集通道
         AVAssetTrack *audioAssetTrack = [audioAsset tracksWithMediaType:AVMediaTypeAudio].firstObject;
         // 加入合成轨道之中
-        [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:mStartTime error:nil];
+        [audioTrack insertTimeRange:audioTimeRange ofTrack:audioAssetTrack atTime:startTime error:nil];
         index += 1;
     }
     if (firstAsset.duration.timescale && secondAsset.duration.timescale) {
@@ -196,6 +207,15 @@
     [assetExport exportAsynchronouslyWithCompletionHandler:^{
         
         [self handleResultWithAssetExport:assetExport outputURL:outputFileUrl success:success failure:failure];
+        if (needRemove) {
+            for (NSURL *url in recordAudios) {
+                NSError *error = nil;
+                [[NSFileManager defaultManager] removeItemAtURL:url error:&error];
+                if (error) {
+                    NSLog(@"Filed to delete file at path:%@, reason: %@", url, error);
+                }
+            }
+        }
         
     }];
     if (assetExport.error) {
@@ -206,7 +226,7 @@
 
 + (void)cutAudioTrackWithAudioURL:(NSURL *)audioURL cutTime:(NSTimeInterval)cutTime success:(void (^ )(NSURL * ))success failure:(void (^ )(NSString * ))failure {
     
-    NSURL *outputFileUrl = [self outputFileURL];
+    NSURL *outputFileUrl = [self recordFileURL];
     
     // 创建可变的音视频组合
     AVMutableComposition *comosition = [AVMutableComposition composition];
@@ -249,17 +269,76 @@
     
 }
 
-+ (NSURL *)outputFileURL {
++ (NSURL *)videoFileURL {
     
     // 路径
     NSString *documents = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
     // 最终合成输出路径 时间来做输入路径不会出现重复
     NSDateFormatter* formater = [[NSDateFormatter alloc] init];
     [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
-    NSString *outPutFilePath = [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.m4a",[formater stringFromDate:[NSDate date]]]];
-    NSURL *outputFileUrl = [NSURL fileURLWithPath:outPutFilePath];
-    return outputFileUrl;
+    NSString *outPutFilePath = [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",[formater stringFromDate:[NSDate date]]]];
+    return [NSURL fileURLWithPath:outPutFilePath];
     
+}
+
++ (NSURL *)recordFileURL {
+    
+    // 路径
+    NSString *documents = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    NSString *recordDirPath = [documents stringByAppendingPathComponent:@"records"];
+    BOOL isDir = YES;
+    if (![[NSFileManager defaultManager] fileExistsAtPath:recordDirPath isDirectory:&isDir]) {
+        NSError *error = nil;
+        [[NSFileManager defaultManager] createDirectoryAtPath:recordDirPath withIntermediateDirectories:NO attributes:nil error:&error];
+        if (error) {
+            NSLog(@"Failed to create directory: %@", error);
+        }
+    }
+    NSLog(@"dir size: %lld", [self sizeAtPath:recordDirPath]);
+    // 最终合成输出路径 时间来做输入路径不会出现重复
+    NSDateFormatter* formater = [[NSDateFormatter alloc] init];
+    [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
+    NSString *outPutFilePath = [recordDirPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.m4a",[formater stringFromDate:[NSDate date]]]];
+    return [NSURL fileURLWithPath:outPutFilePath];
+    
+}
+
++ (void)clearRecordDirectory {
+    
+    NSString *documents = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    NSString *recordDirPath = [documents stringByAppendingPathComponent:@"records"];
+    NSError *error = nil;
+    BOOL isDir = YES;
+    if (![[NSFileManager defaultManager] fileExistsAtPath:recordDirPath isDirectory:&isDir]) { return; }
+    [[NSFileManager defaultManager] removeItemAtPath:recordDirPath error:&error];
+    if (error) {
+        NSLog(@"Failed to remove record directory files: %@", error);
+    }
+    
+}
+
++ (unsigned long long)sizeAtPath:(NSString *)path {
+    NSFileManager *fm = [NSFileManager defaultManager];
+    BOOL isDir = YES;
+    if (![fm fileExistsAtPath:path isDirectory:&isDir]) {
+        return 0;
+    };
+    unsigned long long fileSize = 0;
+    // directory
+    if (isDir) {
+        NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
+        while (enumerator.nextObject) {
+            // 下面注释掉的代码作用：不递归遍历子文件夹
+            // if ([enumerator.fileAttributes.fileType isEqualToString:NSFileTypeDirectory]) {
+            //      [enumerator skipDescendants];
+            // }
+            fileSize += enumerator.fileAttributes.fileSize;
+        }
+    } else {
+        // file
+        fileSize = [fm attributesOfItemAtPath:path error:nil].fileSize;
+    }
+    return fileSize;
 }
 
 + (void)handleResultWithAssetExport:(AVAssetExportSession *)assetExport outputURL:(NSURL *)outputURL success:(void (^ )(NSURL * ))success failure:(void (^ )(NSString * ))failure {
