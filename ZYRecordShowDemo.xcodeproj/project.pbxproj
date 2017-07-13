@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		3E71B54F1F0E35030062302A /* UIView+Frame.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E71B54D1F0E35030062302A /* UIView+Frame.m */; };
 		3E71B5511F0E3B2A0062302A /* myVideo.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 3E71B5501F0E3B2A0062302A /* myVideo.mp4 */; };
+		3E936A5F1F1751C5009845DF /* 66_dubbing_icon_shiting@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E936A5B1F1751C3009845DF /* 66_dubbing_icon_shiting@2x.png */; };
+		3E936A601F1751C5009845DF /* 66_dubbing_icon_complete@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E936A5C1F1751C4009845DF /* 66_dubbing_icon_complete@2x.png */; };
+		3E936A611F1751C5009845DF /* 66_dubbing_icon_complete@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E936A5D1F1751C4009845DF /* 66_dubbing_icon_complete@3x.png */; };
+		3E936A621F1751C5009845DF /* 66_dubbing_icon_shiting@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E936A5E1F1751C4009845DF /* 66_dubbing_icon_shiting@3x.png */; };
+		3E936A651F175328009845DF /* ZYPlayController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E936A641F175328009845DF /* ZYPlayController.m */; };
 		3EBDDACE1F0E147200C74A4D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EBDDACD1F0E147200C74A4D /* AppDelegate.m */; };
 		3EBDDAD41F0E147200C74A4D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3EBDDAD21F0E147200C74A4D /* Main.storyboard */; };
 		3EBDDAD61F0E147200C74A4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3EBDDAD51F0E147200C74A4D /* Assets.xcassets */; };
@@ -46,6 +51,12 @@
 		3E71B54D1F0E35030062302A /* UIView+Frame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIView+Frame.m"; path = "../../../../../../../工作/项目/xing_zuo_iOS/NewZodiac/NewZodiac/Expand/Category/UIView/UIView+Frame.m"; sourceTree = "<group>"; };
 		3E71B54E1F0E35030062302A /* UIView+Frame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIView+Frame.h"; path = "../../../../../../../工作/项目/xing_zuo_iOS/NewZodiac/NewZodiac/Expand/Category/UIView/UIView+Frame.h"; sourceTree = "<group>"; };
 		3E71B5501F0E3B2A0062302A /* myVideo.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = myVideo.mp4; path = ../../../ZYAudioRecordDemo/ZYAudioRecordDemo/myVideo.mp4; sourceTree = "<group>"; };
+		3E936A5B1F1751C3009845DF /* 66_dubbing_icon_shiting@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "66_dubbing_icon_shiting@2x.png"; path = "../../../../../../record_car/66_dubbing_icon_shiting@2x.png"; sourceTree = "<group>"; };
+		3E936A5C1F1751C4009845DF /* 66_dubbing_icon_complete@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "66_dubbing_icon_complete@2x.png"; path = "../../../../../../record_car/66_dubbing_icon_complete@2x.png"; sourceTree = "<group>"; };
+		3E936A5D1F1751C4009845DF /* 66_dubbing_icon_complete@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "66_dubbing_icon_complete@3x.png"; path = "../../../../../../record_car/66_dubbing_icon_complete@3x.png"; sourceTree = "<group>"; };
+		3E936A5E1F1751C4009845DF /* 66_dubbing_icon_shiting@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "66_dubbing_icon_shiting@3x.png"; path = "../../../../../../record_car/66_dubbing_icon_shiting@3x.png"; sourceTree = "<group>"; };
+		3E936A631F175328009845DF /* ZYPlayController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZYPlayController.h; sourceTree = "<group>"; };
+		3E936A641F175328009845DF /* ZYPlayController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZYPlayController.m; sourceTree = "<group>"; };
 		3EBDDAC91F0E147200C74A4D /* ZYRecordShowDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZYRecordShowDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EBDDACC1F0E147200C74A4D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		3EBDDACD1F0E147200C74A4D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -126,6 +137,8 @@
 				3EBDDAE51F0E14A900C74A4D /* ViewController.m */,
 				3EBDDB191F0E244C00C74A4D /* ZYRecordController.h */,
 				3EBDDB1A1F0E244C00C74A4D /* ZYRecordController.m */,
+				3E936A631F175328009845DF /* ZYPlayController.h */,
+				3E936A641F175328009845DF /* ZYPlayController.m */,
 				3EBDDAE71F0E14A900C74A4D /* Model */,
 				3EBDDB1E1F0E2E1F00C74A4D /* JC_MoviewAMusic.h */,
 				3EBDDB1F1F0E2E1F00C74A4D /* JC_MoviewAMusic.m */,
@@ -159,6 +172,10 @@
 			isa = PBXGroup;
 			children = (
 				3E71B5501F0E3B2A0062302A /* myVideo.mp4 */,
+				3E936A5C1F1751C4009845DF /* 66_dubbing_icon_complete@2x.png */,
+				3E936A5D1F1751C4009845DF /* 66_dubbing_icon_complete@3x.png */,
+				3E936A5B1F1751C3009845DF /* 66_dubbing_icon_shiting@2x.png */,
+				3E936A5E1F1751C4009845DF /* 66_dubbing_icon_shiting@3x.png */,
 				3EBDDB011F0E1B4F00C74A4D /* ds_all_delete_white@2x.png */,
 				3EBDDB021F0E1B4F00C74A4D /* ds_all_delete_white@3x.png */,
 				3EBDDAFD1F0E1AE800C74A4D /* 58_costar_icon_watch_play@2x.png */,
@@ -292,6 +309,7 @@
 				3EBDDAF41F0E15C700C74A4D /* ds_quanzi_button_dubbing_press@2x.png in Resources */,
 				3EBDDAEC1F0E151300C74A4D /* home_icon_play@3x.png in Resources */,
 				3EBDDB131F0E1BE600C74A4D /* ds_dubbing_line_572@2x.png in Resources */,
+				3E936A5F1F1751C5009845DF /* 66_dubbing_icon_shiting@2x.png in Resources */,
 				3EBDDAFB1F0E187400C74A4D /* 53_sound_icon_stop@2x.png in Resources */,
 				3EBDDB041F0E1B4F00C74A4D /* ds_all_delete_white@3x.png in Resources */,
 				3EBDDB111F0E1BE600C74A4D /* ds_dubbing_line_420_vertical@2x.png in Resources */,
@@ -304,7 +322,9 @@
 				3EBDDB141F0E1BE600C74A4D /* ds_dubbing_sightcing@2x.png in Resources */,
 				3EBDDB031F0E1B4F00C74A4D /* ds_all_delete_white@2x.png in Resources */,
 				3EBDDAF31F0E15C700C74A4D /* ds_quanzi_button_dubbing@3x.png in Resources */,
+				3E936A601F1751C5009845DF /* 66_dubbing_icon_complete@2x.png in Resources */,
 				3EBDDB001F0E1AE900C74A4D /* 58_costar_icon_watch_play@3x.png in Resources */,
+				3E936A611F1751C5009845DF /* 66_dubbing_icon_complete@3x.png in Resources */,
 				3EBDDB0A1F0E1B9000C74A4D /* ds_dubbing_button_reset@2x.png in Resources */,
 				3EBDDAFC1F0E187400C74A4D /* 53_sound_icon_stop@3x.png in Resources */,
 				3EBDDAD61F0E147200C74A4D /* Assets.xcassets in Resources */,
@@ -312,6 +332,7 @@
 				3EBDDAF81F0E15FB00C74A4D /* ds_material_icon_delete@2x.png in Resources */,
 				3EBDDB091F0E1B9000C74A4D /* ds_dubbing_button_play@2x.png in Resources */,
 				3EBDDAD41F0E147200C74A4D /* Main.storyboard in Resources */,
+				3E936A621F1751C5009845DF /* 66_dubbing_icon_shiting@3x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,6 +395,7 @@
 				3EBDDB201F0E2E1F00C74A4D /* JC_MoviewAMusic.m in Sources */,
 				3EBDDB1B1F0E244C00C74A4D /* ZYRecordController.m in Sources */,
 				3E71B54F1F0E35030062302A /* UIView+Frame.m in Sources */,
+				3E936A651F175328009845DF /* ZYPlayController.m in Sources */,
 				3EBDDACE1F0E147200C74A4D /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

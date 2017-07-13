@@ -12,15 +12,18 @@
 #import "SVProgressHUD.h"
 #import <AVFoundation/AVFoundation.h>
 #import "UIView+Frame.h"
+#import "ZYPlayController.h"
 
 #define SCREEN_WIDTH [UIScreen mainScreen].bounds.size.width
 
 static const CGFloat audioPlotMaxSecondsPerScreen = 28;
+static NSString * const silenceVideoKey = @"silenceVideoKey";
 
 @interface ZYRecordController ()<EZMicrophoneDelegate, UIScrollViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UIView *playerView;
 @property (weak, nonatomic) IBOutlet UIButton *videoPlayBtn;
+@property (weak, nonatomic) IBOutlet UILabel *playTipsLabel;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
 @property (weak, nonatomic) IBOutlet UIView *startLineView;
 @property (weak, nonatomic) IBOutlet UIButton *closeBtn;
@@ -32,6 +35,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 @property (weak, nonatomic) IBOutlet UIView *centerLineView;
 @property (weak, nonatomic) IBOutlet UIView *topLineView;
 @property (weak, nonatomic) IBOutlet UIView *bottomLineView;
+@property (weak, nonatomic) IBOutlet UIButton *finishBtn;
 @property (strong, nonatomic) NSURL *videoURL;
 @property (strong, nonatomic) NSURL *silenceVideoURL;
 @property (strong, nonatomic) NSURL *mixedVideoURL;
@@ -50,6 +54,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 @property (strong, nonatomic) AVAudioRecorder *audioRecorder;
 @property (assign, nonatomic) NSTimeInterval previewCurrentTime;
 @property (assign, nonatomic) NSTimeInterval recordCurrentTime;
+@property (assign, nonatomic) NSTimeInterval originVideoCurrentTime;
 @property (strong, nonatomic) NSTimer *timer;
 @property (strong, nonatomic) AVAudioPlayer *audioPlayer;
 @property (assign, nonatomic) NSTimeInterval videoDuration;
@@ -62,6 +67,8 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 @property (assign, nonatomic) CGPoint offsetBeforePreview;
 @property (strong, nonatomic) UIView *previewProcessView;
 @property (strong, nonatomic) UIView *scaleView;
+@property (strong, nonatomic) UIView *snapView;
+@property (assign, nonatomic) BOOL preparingPreviewAudio;
 
 @end
 
@@ -89,12 +96,15 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     [self setupUI];
     [self prepareForAudioPlot];
     [self removeAudioTrack];
+    UITapGestureRecognizer *tapGest = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(playerViewTapped)];
+    [self.playerView addGestureRecognizer:tapGest];
     
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [JC_MoviewAMusic clearRecordDirectory];
+    self.finishBtn.hidden = YES;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -138,7 +148,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     
     self.firstAudioPlot = [[EZAudioPlot alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 40)];
     self.firstAudioPlot.layer.anchorPoint = CGPointMake(0, 0.5);
-    self.firstAudioPlot.layer.position = CGPointMake(self.startLineView.left, 20);
+    self.firstAudioPlot.layer.position = CGPointMake(SCREEN_WIDTH / 2, 20);
     self.firstAudioPlot.backgroundColor = [UIColor clearColor];
     self.firstAudioPlot.color           = [UIColor whiteColor];
     self.firstAudioPlot.plotType        = EZPlotTypeBuffer;
@@ -165,9 +175,15 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 
 - (void)removeAudioTrack {
     
+    NSURL *silenceURL = [[NSUserDefaults standardUserDefaults] URLForKey:silenceVideoKey];
+    if (silenceURL) {
+        self.silenceVideoURL = silenceURL;
+        return;
+    }
     [SVProgressHUD showWithStatus:@"正在准备视频，请稍候..."];
     [JC_MoviewAMusic movieFliePaths:@[self.videoURL] musicPath:nil success:^(NSURL * _Nullable successPath){
         self.silenceVideoURL = successPath;
+        [[NSUserDefaults standardUserDefaults] setURL:successPath forKey:silenceVideoKey];
         [SVProgressHUD showSuccessWithStatus:@"视频准备完毕"];
         NSLog(@"successPath: %@", successPath);
     } failure:^(NSString * _Nullable errorMsg){
@@ -179,9 +195,45 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 
 #pragma mark - Actions
 
+- (IBAction)videoPlayBtnClick:(UIButton *)sender {
+    
+    [self setAudioSessionWithType:AVAudioSessionCategoryPlayback];
+    sender.selected = YES;
+    self.originVideoCurrentTime = self.recordCurrentTime;
+    [self setupPlayerWithVideoURL:self.videoURL];
+    [self.player seekToTime:CMTimeMake(self.originVideoCurrentTime, 1)];
+    [self.player play];
+    [self listenToTimeChange];
+    sender.hidden = YES;
+    self.playTipsLabel.hidden = YES;
+    self.resetBtn.hidden = YES;
+    self.previewBtn.hidden = YES;
+    
+}
+
+- (void)playerViewTapped {
+    
+    if (self.videoPlayBtn.isHidden && !self.recordBtn.isSelected && !self.previewBtn.isSelected) {
+        [self.timer invalidate];
+        [self handleProcessWithTime:self.recordCurrentTime];
+        [self.player pause];
+        self.videoPlayBtn.hidden = NO;
+        self.videoPlayBtn.selected = NO;
+        self.resetBtn.hidden = NO;
+        self.previewBtn.hidden = NO;
+        self.playTipsLabel.hidden = NO;
+        [self setupPlayerWithVideoURL:self.silenceVideoURL];
+        [self.player seekToTime:CMTimeMake(self.recordCurrentTime, 1)];
+    }
+    
+}
+
 - (IBAction)recordBtnClick:(UIButton *)sender {
     if (!sender.isSelected && self.previewBtn.isSelected) {
         [self previewBtnClick:self.previewBtn];
+    }
+    if (self.videoPlayBtn.isSelected) {
+        [self playerViewTapped];
     }
     sender.selected = !sender.isSelected;
     if (sender.isSelected) {
@@ -200,6 +252,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
             [self.player seekToTime:CMTimeMake(self.recordCurrentTime, 1)];
             [self.player play];
             self.videoPlayBtn.hidden = YES;
+            self.playTipsLabel.hidden = YES;
             self.previewBtn.hidden = YES;
             self.resetBtn.hidden = YES;
             [self listenToTimeChange];
@@ -217,14 +270,18 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     [self openAudioFile];
     self.previewBtn.hidden = NO;
     self.videoPlayBtn.hidden = NO;
+    self.playTipsLabel.hidden = NO;
     self.resetBtn.hidden = NO;
-    [self setupPreviewRecordAudio];
 }
 
 - (IBAction)resetBtnClick:(UIButton *)sender {
 }
 
 - (IBAction)previewBtnClick:(UIButton *)sender {
+    if (self.preparingPreviewAudio) {
+        [SVProgressHUD showErrorWithStatus:@"正在准备预览视频，请稍候..."];
+        return;
+    }
     sender.selected = !sender.isSelected;
     if (sender.isSelected) {
         self.scrollView.userInteractionEnabled = NO;
@@ -236,6 +293,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         [self.player play];
         [self setupAudioPlayerWithURL:self.previewRecordURL];
         self.videoPlayBtn.hidden = YES;
+        self.playTipsLabel.hidden = YES;
         self.resetBtn.hidden = YES;
         [self listenToTimeChange];
     } else {
@@ -243,6 +301,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         self.previewProcessView.hidden = YES;
         [self.timer invalidate];
         self.videoPlayBtn.hidden = NO;
+        self.playTipsLabel.hidden = NO;
         self.resetBtn.hidden = YES;
         [self.player pause];
         [self.audioPlayer pause];
@@ -251,7 +310,12 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 }
 
 - (IBAction)closeBtnClick:(UIButton *)sender {
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (IBAction)finishBtnClick:(UIButton *)sender {
+    ZYPlayController *playVC = [ZYPlayController new];
+    [self.navigationController pushViewController:playVC animated:YES];
 }
 
 #pragma mark - Help Method
@@ -330,6 +394,12 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 
 - (void)setupPlayerWithVideoURL:(NSURL *)videoURL {
     
+    if (!self.snapView) {
+        self.snapView = [self.playerView snapshotViewAfterScreenUpdates:NO];
+        self.snapView.center = self.playerView.center;
+        [self.view addSubview:self.snapView];
+    }
+    self.snapView.hidden = NO;
     self.playerItem = [[AVPlayerItem alloc] initWithURL:videoURL];
     self.player = [[AVPlayer alloc] initWithPlayerItem:self.playerItem];
     if (self.playerLayer) {
@@ -344,6 +414,12 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     [self.playerView.layer insertSublayer:self.playerLayer atIndex:0];
     self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
     self.playerLayer.frame = self.playerView.bounds;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (self.snapView) {
+            [self.snapView removeFromSuperview];
+            self.snapView = nil;
+        }
+    });
     
 }
 
@@ -394,10 +470,6 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 - (void)listenToTimeChange {
     if (self.timer) { self.timer = nil; }
     __weak typeof(self) weakSelf = self;
-    if (self.firstAudioFile.duration / audioPlotMaxSecondsPerScreen > 80.0 / SCREEN_WIDTH) {
-        self.startLineView.transform = CGAffineTransformMakeTranslation(SCREEN_WIDTH / 2 - 80, 0);
-        self.firstAudioPlot.layer.position = CGPointMake(SCREEN_WIDTH / 2, 20);
-    }
     self.timer = [NSTimer scheduledTimerWithTimeInterval:0.015 repeats:YES block:^(NSTimer * _Nonnull timer) {
         [weakSelf countTime];
     }];
@@ -411,11 +483,16 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         self.previewCurrentTime = playTime;
     } else if (self.recordCurrentTime < playTime && self.recordBtn.isSelected) {
         self.recordCurrentTime = playTime;
+    } else if (self.originVideoCurrentTime < playTime && self.videoPlayBtn.isSelected) {
+        self.originVideoCurrentTime = playTime;
     }
-    NSTimeInterval currentTime = self.recordBtn.isSelected ? self.recordCurrentTime : self.previewCurrentTime;
-    if (currentTime < self.firstAudioFile.duration && !self.recordBtn.isSelected) {
-        self.scrollView.contentOffset = CGPointMake(currentTime / audioPlotMaxSecondsPerScreen * SCREEN_WIDTH, 0);
-        self.previewProcessView.transform = CGAffineTransformMakeScale(self.scrollView.contentOffset.x, 1);
+    NSTimeInterval currentTime = self.recordBtn.isSelected ? self.recordCurrentTime : (self.previewBtn.isSelected ? self.previewCurrentTime : self.originVideoCurrentTime);
+    if (self.previewRecordURL) {
+        EZAudioFile *previewAudioFile = [EZAudioFile audioFileWithURL:self.previewRecordURL];
+        if (currentTime < previewAudioFile.duration && self.previewBtn.isSelected) {
+            self.scrollView.contentOffset = CGPointMake(currentTime / audioPlotMaxSecondsPerScreen * SCREEN_WIDTH, 0);
+            self.previewProcessView.transform = CGAffineTransformMakeScale(self.scrollView.contentOffset.x, 1);
+        }
     }
     int currentMin = (int)currentTime / 60;
     int currentSec = (int)currentTime % 60;
@@ -432,6 +509,8 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         self.previewCurrentTime += 0.015;
     } else if (self.recordBtn.isSelected) {
         self.recordCurrentTime += 0.015;
+    } else if (self.videoPlayBtn.isSelected) {
+        self.originVideoCurrentTime += 0.015;
     }
     if (percent >= 1 && self.previewBtn.isSelected) {
         [self previewBtnClick:self.previewBtn];
@@ -453,12 +532,14 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
             self.baseRecordURL = self.preRecordURL;
             [self updateUI];
             self.preRecordURL = self.currentRecordURL;
+            [self setupPreviewRecordAudio];
         } else {
             [self combineAudioTrack];
         }
     } else if (self.audioCount == 1) {
         self.preRecordURL = self.currentRecordURL;
         [self updateUI];
+        [self setupPreviewRecordAudio];
     } else if (self.audioCount == 3) {
         if (self.needCombineRed) {
             [self combineAudioTrack];
@@ -478,6 +559,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
             self.secondAudioFile = [EZAudioFile audioFileWithURL:successURL];
         }
         [self updateUI];
+        [self setupPreviewRecordAudio];
         [self handleAudioViewIsHidden:NO];
     } failure:^(NSString * _Nullable errorMsg) {
         [self handleAudioViewIsHidden:NO];
@@ -497,6 +579,7 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         self.audioCount -= 1;
         [self updateUI];
         self.preRecordURL = self.currentRecordURL;
+        [self setupPreviewRecordAudio];
         [self handleAudioViewIsHidden:NO];
     } failure:^(NSString *errorMsg) {
         [self handleAudioViewIsHidden:NO];
@@ -510,13 +593,6 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
     self.firstAudioFile = [EZAudioFile audioFileWithURL:self.needCombineRed ? self.baseRecordURL : self.preRecordURL];
     double firstScale = self.firstAudioFile.duration / audioPlotMaxSecondsPerScreen;
     double secondScale = self.secondAudioFile.duration / audioPlotMaxSecondsPerScreen;
-    if (firstScale + secondScale > 80 / SCREEN_WIDTH) {
-        self.startLineView.transform = CGAffineTransformMakeTranslation(SCREEN_WIDTH / 2 - 80, 0);
-        self.firstAudioPlot.layer.position = CGPointMake(SCREEN_WIDTH / 2, 20);
-    } else {
-        self.startLineView.transform = CGAffineTransformIdentity;
-        self.firstAudioPlot.layer.position = CGPointMake(80, 20);
-    }
     self.firstAudioPlot.transform = CGAffineTransformMakeScale(firstScale, 1);
     if (self.needRedAudioPlot) {
         if (!self.needCombineRed && self.secondAudioPlot.left != -SCREEN_WIDTH) {
@@ -547,9 +623,11 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 - (void)setupPreviewRecordAudio {
     
     if (self.audioCount == 2 && self.needRedAudioPlot) {
+        self.preparingPreviewAudio = YES;
         NSTimeInterval startTime = (self.secondAudioPlot.left - self.firstAudioPlot.left) / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
-        [JC_MoviewAMusic combineAndCoverRecordAudios:@[self.baseRecordURL, self.currentRecordURL] secondAudioStartTime:startTime needRemoveOriginAudios:NO success:^(NSURL *successURL) {
+        [JC_MoviewAMusic combineAndCoverRecordAudios:@[self.baseRecordURL, self.preRecordURL] secondAudioStartTime:startTime needRemoveOriginAudios:NO success:^(NSURL *successURL) {
             self.previewRecordURL = successURL;
+            self.preparingPreviewAudio = NO;
         } failure:^(NSString *errorMsg) {
             NSLog(@"Failed to combine audio for preview: %@", errorMsg);
         }];
@@ -579,14 +657,35 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
         }
         [self.scaleView removeFromSuperview];
     }
-    self.scaleView = [[UIView alloc] initWithFrame:CGRectMake(0, self.firstAudioPlot.height, self.scrollView.contentSize.width - SCREEN_WIDTH, 1)];
-    self.scaleView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5];
-    [self.firstAudioPlot addSubview:self.scaleView];
+    self.scaleView = [[UIView alloc] initWithFrame:CGRectMake(self.firstAudioPlot.left, self.firstAudioPlot.height, self.scrollView.contentSize.width - SCREEN_WIDTH, 10)];
+    [self.scrollView addSubview:self.scaleView];
     int totalTime = self.scaleView.width / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
+    if (totalTime >= 5) {
+        self.finishBtn.hidden = NO;
+    }
     CGFloat delta = SCREEN_WIDTH * 5 / audioPlotMaxSecondsPerScreen;
-    for (int i = 0; i < totalTime / 5; i++) {
-        UIView *longLineView = [[UIView alloc] initWithFrame:CGRectMake(i * delta, 0, 1, 3)];
+    
+    for (int i = 0; i <= totalTime / 5; i++) {
+        
+        UIView *longLineView = [[UIView alloc] initWithFrame:CGRectMake(i * delta, 0, 1, 6)];
+        longLineView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.1];
         [self.scaleView addSubview:longLineView];
+        
+        UILabel *timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(2 + i * delta, longLineView.height - 2, 0, 0)];
+        timeLabel.font = [UIFont systemFontOfSize:8];
+        timeLabel.textColor = [UIColor colorWithWhite:1 alpha:0.3];
+        timeLabel.text = [NSString stringWithFormat:@"%02d:%02d", i * 5 / 60, i * 5 % 60];
+        [timeLabel sizeToFit];
+        [self.scaleView addSubview:timeLabel];
+        
+        for (int j = 1; j < 5; j++) {
+            if (j * delta / 5 + i * delta <= self.scaleView.width) {
+                UIView *shortLineView = [[UIView alloc] initWithFrame:CGRectMake(j * delta / 5 + i * delta, 0, 1, 2)];
+                shortLineView.backgroundColor = longLineView.backgroundColor;
+                [self.scaleView addSubview:shortLineView];
+            }
+        }
+        
     }
     
 }
@@ -604,21 +703,27 @@ static const CGFloat audioPlotMaxSecondsPerScreen = 28;
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     
-    if (self.previewBtn.isSelected) { return; }
+    if (self.previewBtn.isSelected || self.scrollView.isHidden) { return; }
     CGFloat newTime = scrollView.contentOffset.x / SCREEN_WIDTH * audioPlotMaxSecondsPerScreen;
     if (!self.playerItem.duration.timescale) { return; }
     if (newTime <= self.playerItem.duration.value / self.playerItem.duration.timescale) {
-        [self.player seekToTime:CMTimeMake(newTime, 1)];
-        int currentMin = (int)newTime / 60;
-        int currentSec = (int)newTime % 60;
-        NSTimeInterval duration = self.playerItem.duration.value / (self.playerItem.duration.timescale == 0 ? 1 : self.playerItem.duration.timescale);
-        if (!duration) { return; }
-        int maxMin = (int)duration / 60;
-        int maxSec = (int)duration % 60;
-        CGFloat percent = newTime / duration;
-        self.processView.transform = CGAffineTransformMakeScale(percent * SCREEN_WIDTH, 1);
-        self.timeLabel.text = [NSString stringWithFormat:@"%02d:%02d/%02d:%02d",currentMin, currentSec, maxMin, maxSec];
+        [self handleProcessWithTime:newTime];
     }
+    
+}
+
+- (void)handleProcessWithTime:(CGFloat)newTime {
+    
+    [self.player seekToTime:CMTimeMake(newTime, 1)];
+    int currentMin = (int)newTime / 60;
+    int currentSec = (int)newTime % 60;
+    NSTimeInterval duration = self.playerItem.duration.value / (self.playerItem.duration.timescale == 0 ? 1 : self.playerItem.duration.timescale);
+    if (!duration) { return; }
+    int maxMin = (int)duration / 60;
+    int maxSec = (int)duration % 60;
+    CGFloat percent = newTime / duration;
+    self.processView.transform = CGAffineTransformMakeScale(percent * SCREEN_WIDTH, 1);
+    self.timeLabel.text = [NSString stringWithFormat:@"%02d:%02d/%02d:%02d",currentMin, currentSec, maxMin, maxSec];
     
 }
 
