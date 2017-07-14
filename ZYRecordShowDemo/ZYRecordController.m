@@ -110,6 +110,7 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [JC_MoviewAMusic clearRecordDirectory];
+    [self removeObserver];
 }
 
 - (void)setupUI {
@@ -158,7 +159,6 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
     self.secondAudioPlot = [[EZAudioPlot alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 40)];
     self.secondAudioPlot.layer.anchorPoint = CGPointMake(0, 0.5);
     self.secondAudioPlot.layer.position = CGPointMake(-SCREEN_WIDTH, 20);
-    self.secondAudioPlot.backgroundColor = [UIColor clearColor];
     self.secondAudioPlot.color           = [UIColor redColor];
     self.secondAudioPlot.backgroundColor = [UIColor colorWithRed:38 / 255.0 green:44 / 255.0 blue:60 / 255.0 alpha:1];
     self.secondAudioPlot.plotType        = EZPlotTypeBuffer;
@@ -314,8 +314,17 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
 }
 
 - (IBAction)finishBtnClick:(UIButton *)sender {
-    ZYPlayController *playVC = [ZYPlayController new];
-    [self.navigationController pushViewController:playVC animated:YES];
+    if (self.preparingPreviewAudio) {
+        NSLog(@"Audio is not prepared!");
+        return;
+    }
+    [JC_MoviewAMusic movieFliePaths:@[self.silenceVideoURL] musicPath:self.previewRecordURL success:^(NSURL *successPath) {
+        ZYPlayController *playVC = [ZYPlayController new];
+        playVC.videoURL = successPath;
+        [self.navigationController pushViewController:playVC animated:YES];
+    } failure:^(NSString *errorMsg) {
+        NSLog(@"Failed to combine video and audio");
+    }];
 }
 
 #pragma mark - Help Method
@@ -466,7 +475,6 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
     }
 }
 
-
 - (void)listenToTimeChange {
     if (self.timer) { self.timer = nil; }
     __weak typeof(self) weakSelf = self;
@@ -559,8 +567,8 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
             self.secondAudioFile = [EZAudioFile audioFileWithURL:successURL];
         }
         [self updateUI];
-        [self setupPreviewRecordAudio];
         [self handleAudioViewIsHidden:NO];
+        [self setupPreviewRecordAudio];
     } failure:^(NSString * _Nullable errorMsg) {
         [self handleAudioViewIsHidden:NO];
         NSLog(@"Failed to combine audio track: %@", errorMsg);
@@ -629,6 +637,7 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
             self.previewRecordURL = successURL;
             self.preparingPreviewAudio = NO;
         } failure:^(NSString *errorMsg) {
+            self.preparingPreviewAudio = NO;
             NSLog(@"Failed to combine audio for preview: %@", errorMsg);
         }];
     } else {
@@ -727,17 +736,17 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
     
 }
 
-- (void)dealloc {
+- (void)removeObserver {
     
     self.timer = nil;
+    [self.player pause];
+    [self.playerLayer removeFromSuperlayer];
     [self.player removeObserver:self forKeyPath:@"rate"];
     [self.playerItem removeObserver:self forKeyPath:@"status"];
     [self.playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
     [self.playerItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
     [self.playerItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [self.player pause];
-    [self.playerLayer removeFromSuperlayer];
     self.player = nil;
     self.playerItem = nil;
     

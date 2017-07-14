@@ -174,7 +174,7 @@
                                 <rect key="frame" x="0.0" y="45" width="375" height="211"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wVu-UE-wxz">
-                                        <rect key="frame" x="166" y="84" width="42" height="42"/>
+                                        <rect key="frame" x="166" y="74.5" width="42" height="42"/>
                                         <state key="normal" image="58_costar_icon_watch_play.png"/>
                                         <connections>
                                             <action selector="videoPlayBtnClick:" destination="oCw-dL-PyP" eventType="touchUpInside" id="EcF-Lf-rjb"/>
@@ -196,7 +196,7 @@
                                         </constraints>
                                     </view>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="预览原声" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NTP-PZ-H9S">
-                                        <rect key="frame" x="159" y="131" width="57.5" height="17"/>
+                                        <rect key="frame" x="159" y="121.5" width="57.5" height="17"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
@@ -206,7 +206,7 @@
                                     <constraint firstItem="NTP-PZ-H9S" firstAttribute="centerX" secondItem="wVu-UE-wxz" secondAttribute="centerX" id="2Dg-aQ-qSe"/>
                                     <constraint firstItem="wVu-UE-wxz" firstAttribute="centerX" secondItem="vzl-na-kbl" secondAttribute="centerX" id="9Nl-SR-YSe"/>
                                     <constraint firstAttribute="trailing" secondItem="xUJ-9z-JaT" secondAttribute="trailing" id="IyP-ED-NMt"/>
-                                    <constraint firstItem="wVu-UE-wxz" firstAttribute="centerY" secondItem="vzl-na-kbl" secondAttribute="centerY" id="TCo-Kh-u6i"/>
+                                    <constraint firstItem="wVu-UE-wxz" firstAttribute="centerY" secondItem="vzl-na-kbl" secondAttribute="centerY" constant="-10" id="TCo-Kh-u6i"/>
                                     <constraint firstItem="6sB-62-Dhu" firstAttribute="top" secondItem="xUJ-9z-JaT" secondAttribute="top" id="kVi-DZ-eYJ"/>
                                     <constraint firstItem="NTP-PZ-H9S" firstAttribute="top" secondItem="wVu-UE-wxz" secondAttribute="bottom" constant="5" id="llK-3Z-22m"/>
                                     <constraint firstItem="xUJ-9z-JaT" firstAttribute="leading" secondItem="vzl-na-kbl" secondAttribute="leading" constant="-1" id="pdS-Zi-8lb"/>
@@ -272,7 +272,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="edY-mP-Ceg" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1265" y="87"/>
+            <point key="canvasLocation" x="1264.8" y="86.806596701649184"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="qIS-9F-QBw">

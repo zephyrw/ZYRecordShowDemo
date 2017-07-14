@@ -10,4 +10,6 @@
 
 @interface ZYPlayController : UIViewController
 
+@property (strong, nonatomic) NSURL *videoURL;
+
 @end
