@@ -110,7 +110,7 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [JC_MoviewAMusic clearRecordDirectory];
-    [self removeObserver];
+    [self removePlayerObserver];
 }
 
 - (void)setupUI {
@@ -266,7 +266,7 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
     [self.timer invalidate];
     [self.player pause];
     [self.audioRecorder stop];
-    [self.microphone stopFetchingAudio];
+//    [self.microphone stopFetchingAudio];
     [self openAudioFile];
     self.previewBtn.hidden = NO;
     self.videoPlayBtn.hidden = NO;
@@ -403,6 +403,7 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
 
 - (void)setupPlayerWithVideoURL:(NSURL *)videoURL {
     
+    [self removePlayerObserver];
     if (!self.snapView) {
         self.snapView = [self.playerView snapshotViewAfterScreenUpdates:NO];
         self.snapView.center = self.playerView.center;
@@ -736,11 +737,11 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
     
 }
 
-- (void)removeObserver {
+- (void)removePlayerObserver {
     
     self.timer = nil;
     [self.player pause];
-    [self.playerLayer removeFromSuperlayer];
+//    [self.playerLayer removeFromSuperlayer];
     [self.player removeObserver:self forKeyPath:@"rate"];
     [self.playerItem removeObserver:self forKeyPath:@"status"];
     [self.playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];

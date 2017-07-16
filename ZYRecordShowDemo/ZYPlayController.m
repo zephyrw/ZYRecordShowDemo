@@ -93,6 +93,8 @@
 
 - (void)setupPlayerWithVideoURL:(NSURL *)videoURL {
     
+    [self setAudioSessionWithType:AVAudioSessionCategoryPlayback];
+    
     self.playerItem = [[AVPlayerItem alloc] initWithURL:videoURL];
     self.player = [[AVPlayer alloc] initWithPlayerItem:self.playerItem];
     if (self.playerLayer) {
@@ -153,6 +155,19 @@
     self.player = nil;
     self.playerItem = nil;
     
+}
+
+- (void)setAudioSessionWithType:(NSString *)type {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSError *error;
+    [session setCategory:type error:&error];
+    if (error) {
+        NSLog(@"Error setting up audio session category: %@", error.localizedDescription);
+    }
+    [session setActive:YES error:&error];
+    if (error) {
+        NSLog(@"Error setting up audio session active: %@", error.localizedDescription);
+    }
 }
 
 @end
