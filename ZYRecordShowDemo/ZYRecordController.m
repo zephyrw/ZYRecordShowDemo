@@ -129,6 +129,14 @@ static NSString * const silenceVideoKey = @"silenceVideoKey";
     bottomCircle.clipsToBounds = YES;
     [self.startLineView addSubview:bottomCircle];
     
+    for (int i = 1; i < SCREEN_WIDTH; i++) {
+        
+        UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(-SCREEN_WIDTH / 2 + i * 1, 0, 0.5, self.startLineView.height)];
+        lineView.backgroundColor = [UIColor colorWithRed:38 / 255.0 green:44 / 255.0 blue:60 / 255.0 alpha:1];
+        [self.startLineView addSubview:lineView];
+        
+    }
+    
     self.previewProcessView = [[UIView alloc] initWithFrame:CGRectMake(0, -2, 1, self.startLineView.height + 4)];
     self.previewProcessView.layer.anchorPoint = CGPointMake(1, 0.5);
     self.previewProcessView.layer.position = CGPointMake(0, self.startLineView.height / 2);
